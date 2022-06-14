@@ -2,6 +2,8 @@
 
 This repository enables to predict whether the cancer is benign or mailgnant.
 
+This project was created in cooperation with PredictForce. Non-commercial usage of this code was allowed. The publication of this code is without prejudice to any NDA clause.
+
 ## Data
 
 The dataset is provided by Breat Cancer Wisconsin (Diagnostic) Data Set and is available here: https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Diagnostic%29
