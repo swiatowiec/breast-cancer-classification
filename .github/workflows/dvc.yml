@@ -1,0 +1,66 @@
+name: dvc
+on: [push]
+jobs:
+  DVC_pipeline:
+    if: ${{ contains(github.event.head_commit.message, 'train') }}
+    runs-on: [self-hosted]
+    defaults:
+      run:
+        shell: bash -l {0}
+    container:
+      image: docker://swiatowiec/cml-miniconda:latest
+      credentials:
+        username: swiatowiec
+        password: ${{ secrets.DOCKER_HUB}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v2
+        with:
+          path: /usr/share/miniconda3/envs/classification
+          key: conda-${{ hashFiles('environment.yml') }}
+        id: cache
+      - name: Update environment
+        run: conda env update -n classification -f environment.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Reproduce DVC pipeline
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          REPO_TOKEN: ${{ secrets.DVC }}
+        run: |
+          conda activate classification
+          dvc pull
+          dvc repro
+          dvc push
+          echo "## Model metrics" >> report.md
+          echo "### Train metrics" >> report.md
+          cat training/artifacts/metadata/train_scores.json | python -m json.tool >> report.md
+          echo "### Test metrics" >> report.md
+          cat training/artifacts/metadata/test_scores.json | python -m json.tool >> report.md
+          echo "## ROC curve" >> report.md
+          echo "## Train ROC curve" >> report.md
+          cat training/artifacts/metadata/train_ROC_curve.json | python -m json.tool >> report.md
+          echo "## Test ROC curve" >> report.md
+          cat training/artifacts/metadata/test_ROC_curve.json | python -m json.tool >> report.md
+          git fetch --prune
+          echo "## EDA plots" >> report.md
+          cml-publish eda/artifacts/metadata/count_of_diagnosis.png --md >> report.md
+          cml-send-comment report.md
+      - name: Commit files
+        id: commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "github-actions"
+          git add --all
+          if [-z "$(git status --porcelain)"]; then
+            echo "::set-output name=push::false"
+          else
+            git commit -m "Results of the last experiment" -a
+            echo "::set-output name=push::true"
+          fi
+        shell: bash
+      - name: Push changes
+        if: steps.commit.outputs.push == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.DVC }}
+          branch: ${{ github.ref }}

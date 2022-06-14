@@ -1,0 +1,42 @@
+preprocessing:
+  run_name: preprocessing_test
+  input_dir_path: data/input
+  output_dir_path: data/preprocessed
+  output_file_name: data.csv
+  metadata_dir_path: preprocessing/artifacts/metadata
+  fulfillment_mode: mean
+  columns_to_fulfill:
+    radius_mean,texture_mean,perimeter_mean,area_mean,smoothness_mean,compactness_mean,concavity_mean,concave
+    points_mean,symmetry_mean,fractal_dimension_mean,radius_se,texture_se,perimeter_se,area_se,smoothness_se,compactness_se,concavity_se,concave
+    points_se,symmetry_se,fractal_dimension_se,radius_worst,texture_worst,perimeter_worst,area_worst,smoothness_worst,compactness_worst,concavity_worst,concave
+    points_worst,symmetry_worst,fractal_dimension_worst
+  target_column: diagnosis
+  n_components: 3
+
+eda:
+  run_name: eda_test
+  input_data_dir_path: data/preprocessed
+  filetype: csv
+  artifacts_dir_path: eda/artifacts/metadata
+  config_path: eda_config.json
+  target_column: diagnosis
+  distribution_plot:
+  correlation_plot:
+
+training:
+  run_name: training_test
+  to_split_dir_path: data/preprocessed
+  splitted_dir_path: data/splitted
+  train_dataset_name: train
+  test_dataset_name: test
+  artifacts_dir_path: training/artifacts/metadata
+  training_mode: bagging
+  test_size: 0.15
+  val_size: 0.15
+  random_state: 42
+  penalty: l1, l2
+  c: 0.01,0.1,1,10,100,1000
+  max_samples: 0.5
+  max_features: 1.0
+  n_estimators: 30
+  learning_rate: 0.001

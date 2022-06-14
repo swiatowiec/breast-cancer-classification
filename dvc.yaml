@@ -1,0 +1,46 @@
+stages:
+  preprocessing:
+    cmd: python3 preprocessing/run_preprocess_process.py
+    deps:
+      - data/input
+    params:
+      - config.yaml:
+          - preprocessing.fulfillment_mode
+    outs:
+      - data/preprocessed
+
+  eda:
+    cmd: python eda/run_eda_process.py
+    deps:
+      - data/preprocessed
+      - eda/run_eda_process.py
+
+  training:
+    cmd: python training/run_train_process.py
+    deps:
+      - data/preprocessed
+      - training/run_train_process.py
+    metrics:
+      - training/artifacts/metadata/train_scores.json:
+          cache: false
+      - training/artifacts/metadata/test_scores.json:
+          cache: false
+    plots:
+      - training/artifacts/metadata/train_ROC_curve.json:
+          cache: false
+      - training/artifacts/metadata/test_ROC_curve.json:
+          cache: false
+    params:
+      - config.yaml:
+          - training.training_mode
+          - training.test_size
+          - training.random_state
+          - training.penalty
+          - training.c
+          - training.max_samples
+          - training.max_features
+          - training.n_estimators
+          - training.learning_rate
+    outs:
+      - training/artifacts/metadata/model.pkl:
+          cache: false

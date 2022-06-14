@@ -1,0 +1,64 @@
+schema: '2.0'
+stages:
+  preprocessing:
+    cmd: python3 preprocessing/run_preprocess_process.py
+    deps:
+    - path: data/input
+      md5: ddc69b0fb7322bf4a8315e901fc5b061.dir
+      size: 125282
+      nfiles: 2
+    params:
+      config.yaml:
+        preprocessing.fulfillment_mode: mean
+    outs:
+    - path: data/preprocessed
+      md5: f8b6c7513e0af987ceb25f9c613dc062.dir
+      size: 34166
+      nfiles: 1
+  eda:
+    cmd: python eda/run_eda_process.py
+    deps:
+    - path: data/preprocessed
+      md5: f8b6c7513e0af987ceb25f9c613dc062.dir
+      size: 34166
+      nfiles: 1
+    - path: eda/run_eda_process.py
+      md5: e601cb4468ae57c573a7b5ebc505bfe3
+      size: 519
+  training:
+    cmd: python training/run_train_process.py
+    deps:
+    - path: data/preprocessed
+      md5: f8b6c7513e0af987ceb25f9c613dc062.dir
+      size: 34166
+      nfiles: 1
+    - path: training/run_train_process.py
+      md5: 088c3d3ed696f3bee1fb3afd303966a8
+      size: 1424
+    params:
+      config.yaml:
+        training.c: 0.01,0.1,1,10,100,1000
+        training.learning_rate: 0.001
+        training.max_features: 1.0
+        training.max_samples: 0.5
+        training.n_estimators: 30
+        training.penalty: l1, l2
+        training.random_state: 42
+        training.test_size: 0.15
+        training.training_mode: bagging
+    outs:
+    - path: training/artifacts/metadata/model.pkl
+      md5: cce0817943e7c360bab6fd40fee8f5dc
+      size: 7120999
+    - path: training/artifacts/metadata/test_ROC_curve.json
+      md5: b164c27657260ef61b5f9cc2676ddb9a
+      size: 19
+    - path: training/artifacts/metadata/test_scores.json
+      md5: 3582ee454cbda81a5b44d15a5a751eee
+      size: 114
+    - path: training/artifacts/metadata/train_ROC_curve.json
+      md5: 8ac65f99a2793d8a8afda01d9cf43c8c
+      size: 19
+    - path: training/artifacts/metadata/train_scores.json
+      md5: 2d64302e646f64e988314201a8205194
+      size: 127
